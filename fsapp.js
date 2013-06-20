@@ -3,10 +3,9 @@ var http = require('http');
 var path = require('path');
 var url = require('url');
 
-var showFile = function(err,data) {
-    console.log(data);
-};
-
+var filename = 'log.txt';
+var filepath = 'logs/';
+var logformat = ['time','level','log']
 var handler = function (req,res) {
     var urlobj = url.parse(req.url,true);    
     var fn = route(urlobj.pathname);
@@ -19,7 +18,6 @@ http.createServer(handler).listen("8080","localhost");
 
 uploadLogs = function (logfile) {
     console.log(logfile);
-    
 };
 
 setLogFormat = function (format) {
@@ -29,6 +27,7 @@ setLogFormat = function (format) {
 
 getLogs = function (id) {
     console.log(id);
+    var fdata = fsys.readFile(path.join(filepath,filename),'utf8',fileRead)
     
 };
 
@@ -39,8 +38,27 @@ filterLogs = function (field) {
 
 log = function (data) {
     console.log(data);
-    
+    var formattedLog = formatLogData(data,logformat);
+    fsys.appendFile(path.join(filepath,filename),formattedLog,'utf8',onError);
 };
+
+function fileRead(data,error) {
+    return data;
+}
+
+function formatLogData(data,format) {
+    var text = "";
+    for(k in format) {
+	var key = format[k];
+	text += data[key]+":";
+    }
+    text = text.substring(0,text.length-1);
+    return text+"\r\n";
+}
+
+function onError(err) {
+    if(err) console.log(err);
+}
 
 function route(path) {
     var fn = function(){};
@@ -53,9 +71,9 @@ function route(path) {
 	break;
     case '/filterlogs':fn = filterLogs;
 	break;
-    case '/log': 
-    default: fn = log;
+    case '/log':fn = log;
 	break;
+    default: break;
     }
     return fn;
 }
